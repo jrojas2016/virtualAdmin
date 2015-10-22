@@ -1,0 +1,10 @@
+Subject: Test Subject
+
+Hello {receiverName},
+
+I want to confirm that this email works. If I continue to write it will eventually start to wrap around.
+
+However, what happens If I make a new paragraph. I'm just trying to make sure that the this works for sending personalized invites.
+
+Sincerely,
+Lambda Programmer

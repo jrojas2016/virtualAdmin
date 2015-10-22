@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang = 'en'>
+<head>
+	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/home.css') }}">
+</head>
+<body>
+	<h1>{{ pgElements.title }}</h1>
+	<form style = 'display: inline' action = '/' method = 'get'>
+		<button class = 'btn'>Log Out</button>
+	</form>
+	<h2>Actions</h2>
+		<form style = 'display: inline' action = '/updateAsana' method = 'get'>
+			<button class = 'btn'>Remind Users</button>
+		</form>
+		<form style = 'display: inline' action = '/createAgenda' method = 'get'>
+			<button class = 'btn'>Create Agenda</button>
+		</form>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang = 'en'>
+<head>
+	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/landing.css') }}">
+</head>
+<body>
+	<h1>{{ pgElements.title }}</h1>
+	<form style = 'display: inline' action = '/login' method = 'get'>
+			<button class = 'btn'>Log In</button>
+	</form>
+	<form style = 'display: inline' action = '/signUp' method = 'get'>
+		<button class = 'btn'>Sign Up</button>
+	</form>
+	<h2>About Virtual Admin</h2>
+	<p>
+		Virtual Admin is a web app optimized for national organizations at the 
+		chapter level. The tasks available at the moment include reminders, reporting, and more through Asana and Slack integrations.
+	</p>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang = 'en'>
+<head>
+	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/landing.css') }}">
+</head>
+<body>
+    <h1>Thanks for joining Virtual Admin!</h1>
+    <p>
+    	Please visit your email and click the confirmation link. Once confirmed, click the
+        button below to log in.
+    </p>
+    <form style = 'display: inline' action = '/login' method = 'get'>
+            <button class = 'btn'>Login</button>
+    </form>
+</body>
+</html>

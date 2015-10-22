@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang = 'en'>
+<head>
+	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/login.css') }}">
+</head>
+<body>
+	{% if pgElements.parent == '/signUp' %}
+		<h1>{{ pgElements.title }}</h1>
+		<form action = "/signUp" method = 'post'>
+			<input type = 'text' name = 'email' placeholder = 'Email'>
+			<input type = 'password' name = 'password' placeholder = 'Password'>
+			<input type = 'submit' value = 'Sign Up'>
+		</form>
+	{% else %}
+		{% if pgElements.error %}
+			<div>
+				<h2>{{ pgElements.error }}</h2>
+			</div>
+		{% endif %}
+		<h1>{{ pgElements.title }}</h1>
+		<form action = "/login" method = 'post'>
+			<input type = 'text' name = 'email' placeholder = 'Email'>
+			<input type = 'password' name = 'password' placeholder = 'Password'>
+			<input type = 'submit' value = 'Log In'>
+		</form>
+	{% endif %}
+</body>
+</html>
