@@ -23,6 +23,10 @@ input[type=submit]:hover {
   color: #000000;
 }
 
+input[type=text].failed {
+  border: 2px solid red;
+}
+
 h1 {
   font-size: 20px;
 }
