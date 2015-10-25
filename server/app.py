@@ -23,7 +23,7 @@ from flask import Flask, request, render_template
 app = Flask(__name__)
 
 '''MongoDB Client & Collections'''
-client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
+client = MongoClient('mongodb://[heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@]ds045064.mongolab.com:45064/heroku_9n5zjh5h')
 va_db = client['virtual-admin-db']
 c_chapters = va_db['chapters']
 
