@@ -146,7 +146,7 @@ def confirmUser(usrName = None):
 
 @app.route('/createAgenda')
 def runCreateAgenda():
-	# createAgenda()
+	createAgenda()
 	#Return page after createAgenda() finishes execution
 	homeElements = pageElements('Virtual Admin Dashboard')
 	return render_template('homePage.html', pgElements = homeElements)
@@ -185,7 +185,7 @@ def signUp():
 
 @app.route('/updateAsana')
 def runUpdateAsana():
-	# updateAsana()
+	updateAsana()
 	#Return page after updateAsana() finishes execution
 	homeElements = pageElements('Virtual Admin Dashboard')
 	return render_template('homePage.html', pgElements = homeElements)
