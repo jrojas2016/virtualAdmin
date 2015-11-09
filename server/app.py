@@ -16,8 +16,8 @@ from sys import path
 from os import getcwd
 path.append(getcwd())
 from pymongo import MongoClient
-# from scripts.updateAsana import updateAsana
-# from scripts.createAgendaFromAsana import createAgenda
+from scripts.updateAsana import updateAsana
+from scripts.createAgendaFromAsana import createAgenda
 from flask import Flask, request, render_template
 
 app = Flask(__name__)
