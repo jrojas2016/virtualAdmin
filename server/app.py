@@ -147,7 +147,7 @@ def confirmUser(usrName = None):
 	loginElements = pageElements('Virtual Admin Log-in Page', parent = '/login')
 	return render_template('loginPage.html', pgElements = loginElements)
 
-@app.route('dashboard/<name>/createAgenda')
+@app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
 	result = q.enqueue(createAgenda, 'debug')
 	print result
@@ -188,7 +188,7 @@ def signUp():
 	else:
 		return render_template('loginPage.html', pgElements = signUpElements)
 
-@app.route('dashboard/<name>/updateAsana')
+@app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
 	result = q.enqueue(updateAsana, 'debug', 'debug')
 	# updateAsana()
