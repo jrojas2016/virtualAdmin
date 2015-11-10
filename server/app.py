@@ -12,8 +12,10 @@ author(s):
 import smtplib
 import hashlib
 import datetime
+from rq import Queue
 from sys import path
 from os import getcwd
+from worker import conn
 path.append(getcwd())
 from pymongo import MongoClient
 from scripts.updateAsana import updateAsana
@@ -21,6 +23,7 @@ from scripts.createAgendaFromAsana import createAgenda
 from flask import Flask, request, render_template
 
 app = Flask(__name__)
+q = Queue(connection=conn)
 
 '''MongoDB Client & Collections'''
 client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
@@ -146,9 +149,9 @@ def confirmUser(usrName = None):
 
 @app.route('/createAgenda')
 def runCreateAgenda():
-	createAgenda()
-	#Return page after createAgenda() finishes execution
-	homeElements = pageElements('Virtual Admin Dashboard')
+	q.enqueue(createAgenda)
+	# createAgenda()
+	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
 	return render_template('homePage.html', pgElements = homeElements)
 
 @app.route('/dashboard/<name>')
@@ -185,9 +188,10 @@ def signUp():
 
 @app.route('/updateAsana')
 def runUpdateAsana():
-	updateAsana()
-	#Return page after updateAsana() finishes execution
-	homeElements = pageElements('Virtual Admin Dashboard')
+	q.enqueue(updateAsana)
+	# updateAsana()
+	
+	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
 	return render_template('homePage.html', pgElements = homeElements)
 
 if __name__ == '__main__':
