@@ -163,7 +163,7 @@ def oauth2callback():
 		scope='https://www.googleapis.com/auth/drive',
 		redirect_uri=url_for('oauth2callback', _external=True)
 	)
-
+	print getcwd()
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
 		return redirect(auth_uri)
