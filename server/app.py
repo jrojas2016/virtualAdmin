@@ -101,6 +101,8 @@ def validLogin(postForm):
 	to access Virtual Admin Dashboard
 	'''
 	psswrd = hashlib.sha512(postForm['password']).hexdigest()
+	usr_name = postForm['email'].split('@')[0]
+	session['usrName'] = usr_name
 	for cur_chapter in c_chapters.find():
 		if postForm['email'] == cur_chapter['email'] and psswrd == cur_chapter['password']:
 			if cur_chapter['email_confirmed'] == True:
