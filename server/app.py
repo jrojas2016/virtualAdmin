@@ -141,7 +141,9 @@ def runCreateAgenda(name = None):
 	from pydrive.drive import GoogleDrive
 
 	gauth = GoogleAuth()
-	gauth.LocalWebserverAuth()
+	gauth_url = gauth.GetAuthUrl()
+	code = redirect(gauth_url)
+	gauth.Auth(code)
 	drive = GoogleDrive(gauth)	#gdrive service instance
 
 	# createAgenda(projKey, drive)
