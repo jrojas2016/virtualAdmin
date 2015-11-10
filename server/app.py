@@ -172,7 +172,7 @@ def signUp():
 def runUpdateAsana(name = None):
 	res = q.enqueue(updateAsana, 'debug', 'debug')
 	# updateAsana()
-	return redirect(url_for('renderDashboard', name = name)
+	return redirect(url_for('renderDashboard', name = name))
 
 if __name__ == '__main__':
 	app.debug = True
