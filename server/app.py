@@ -12,6 +12,7 @@ author(s):
 import uuid
 import smtplib
 import hashlib
+import logging
 import datetime
 import json, base64
 from rq import Queue
@@ -216,5 +217,7 @@ def runUpdateAsana(name = None):
 
 if __name__ == '__main__':
 	app.debug = True
+	app.logger.addHandler(logging.StreamHandler(sys.stdout))
+	app.logger.setLevel(logging.ERROR)
 	app.run()
 
