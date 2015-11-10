@@ -13,18 +13,19 @@ import smtplib
 import hashlib
 import datetime
 import json, base64
-import urllib, urllib2
 from rq import Queue
 from sys import path
 from os import getcwd
 from worker import conn
 path.append(getcwd())
+from oauth2client import client
 from pymongo import MongoClient
 from scripts.updateAsana import updateAsana
 from scripts.createAgendaFromAsana import createAgenda
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, session, escape
 
 app = Flask(__name__)
+app.secret_key = '\x14\n\x92\xb1V\x98\xad\xb8u^\xd3v\x8a\x07\x82\xcd\xd4-l\x84#\x8bw/'
 q = Queue(connection=conn)
 
 '''MongoDB Client & Collections'''
@@ -39,16 +40,14 @@ def sendEmailConfirmation(postForm):
 	server = smtplib.SMTP("smtp.gmail.com",587)
 	server.starttls()
 	server.login(sender, passwrd)
-	send_email = postForm['email']
-	send_name = send_email.split('@')[0]
 	msg = [ 
 		'From: %s'%sender, 
-		'To: %s'%send_email,
+		'To: %s'%session['email'],
 		'Subject: Virtual Admin - Email Confirmation',
 		'',
 		'Thanks for joining Virtual Admin. To confirm your email please click the link below:',
 		'',
-		'http://virtualadmin.herokuapp.com/confirm/%s'%send_name,
+		'http://virtualadmin.herokuapp.com/confirm/%s'%session['usrName'],
 		'',
 		'Sincerely,',
 		'Virtual Admin Team'
@@ -57,7 +56,7 @@ def sendEmailConfirmation(postForm):
 	message = '\r\n'.join( msg )
 
 	try:
-		server.sendmail( sender, send_email, message )
+		server.sendmail( sender, session['email'], message )
 		print 'Email sent successfully to %s'%postForm['email']
 	except:
 		print 'Email failed to send to %s!'%postForm['email']
@@ -66,12 +65,12 @@ def sendEmailConfirmation(postForm):
 
 def signUpUser(postForm):
 	newUser = True
-	usr_email = postForm['email']
-	usr_name = usr_email.split('@')[0]
+	session['email'] = postForm['email']
+	session['usrName'] = usr_email.split('@')[0]
 	usr_psswrd = postForm['password']
 	post = {
-		'email': usr_email,
-		'name': usr_name,
+		'email': session['email'],
+		'name': session['usrName'],
 		'password': hashlib.sha512(usr_psswrd).hexdigest(),
 		'joined-on': datetime.datetime.utcnow(),
 		'email_confirmed': False,
@@ -80,7 +79,7 @@ def signUpUser(postForm):
 	}
 
 	for cur_chapter in c_chapters.find():
-		if cur_chapter['email'] == usr_email:
+		if cur_chapter['email'] == session['email']:
 			newUser = False
 
 	if newUser:
@@ -139,37 +138,51 @@ def confirmUser(usrName = None):
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
-	from pydrive.auth import GoogleAuth
-	from pydrive.drive import GoogleDrive
+	if 'credentials' not in session:
+		return redirect(url_for('oauth2callback'))
+	credentials = client.OAuth2Credentials.from_json(session['credentials'])
+	if credentials.access_token_expired:
+		return redirect(url_for('oauth2callback'))
 
-	gauth = GoogleAuth()
-	gauth_url = gauth.GetAuthUrl()
-	req = urllib2.Request( gauth_url )
-	response = urllib2.urlopen( req )
-	res = response.read()
-	print res
-	gauth.Auth(res['id'])
-	drive = GoogleDrive(gauth)	#gdrive service instance
+	drive = GoogleDrive(session['credentials'])
 
 	# createAgenda(projKey, drive)
 	res = q.enqueue(createAgenda, 'debug', drive, timeout=500)
-	return redirect(url_for('renderDashboard', name = name))
+	return redirect(url_for('renderDashboard', name = session['usrName']))
 
 @app.route('/dashboard/<name>')
 def renderDashboard(name = None):
 	return render_template('dashboardPage.html', parent = '/dashboard', usr = name)
+
+@app.route('/oauth2callback')
+def oauth2callback():
+	flow = client.flow_from_clientsecrets(
+		'client_secrets.json',
+		scope='https://www.googleapis.com/auth/drive',
+		redirect_uri=url_for('oauth2callback', _external=True)
+	)
+
+	if 'code' not in request.args:
+		auth_uri = flow.step1_get_authorize_url()
+		return redirect(auth_uri)
+	else:
+		auth_code = request.args.get('code')
+		print auth_code
+		# credentials = flow.step2_exchange(auth_code)
+		session['credentials'] = json.loads(auth_code)
+		return redirect(flask.url_for('runCreateAgenda', name = session['usrName']))
+	
 
 @app.route('/login', methods = ['GET', 'POST'])
 def renderLogin(err = None):
 	error = None
 	if request.method == 'POST':
 		if validLogin(request.form):
-			usr_name = request.form['email'].split('@')[0]
-			return redirect(url_for('renderDashboard', name = usr_name))
+			return redirect(url_for('renderDashboard', name = session['usrName']))
 		else:
 			error = 'Invalid username/password!\nPlease check your credentials.'
 	
-	return render_template('loginPage.html', parent = '/login', err = error)
+	return render_template('loginPage.html', parent = url_for('renderLogin'), err = error)
 
 @app.route('/signUp', methods = ['GET','POST'])
 def signUp():
@@ -181,13 +194,13 @@ def signUp():
 			sendEmailConfirmation(request.form)
 			return render_template('signUpConfirmationPage.html')
 	else:
-		return render_template('loginPage.html', parent = '/signUp')
+		return render_template('loginPage.html', parent = url_for('signUp'))
 
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
 	# updateAsana(projKey, chan)
 	res = q.enqueue(updateAsana, 'debug', 'debug', timeout=500)
-	return redirect(url_for('renderDashboard', name = name))
+	return redirect(url_for('renderDashboard', name = session['usrName']))
 
 if __name__ == '__main__':
 	app.debug = True
