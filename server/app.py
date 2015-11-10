@@ -20,7 +20,7 @@ path.append(getcwd())
 from pymongo import MongoClient
 from scripts.updateAsana import updateAsana
 from scripts.createAgendaFromAsana import createAgenda
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect
 
 app = Flask(__name__)
 q = Queue(connection=conn)
@@ -147,13 +147,14 @@ def confirmUser(usrName = None):
 	loginElements = pageElements('Virtual Admin Log-in Page', parent = '/login')
 	return render_template('loginPage.html', pgElements = loginElements)
 
-@app.route('/createAgenda')
-def runCreateAgenda():
+@app.route('dashboard/<name>/createAgenda')
+def runCreateAgenda(name = None):
 	result = q.enqueue(createAgenda, 'debug')
 	print result
 	# createAgenda()
 	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
-	return render_template('homePage.html', pgElements = homeElements)
+	return redirect('/dashboard/%s'%name)
+	# return render_template('dashboardPage.html', pgElements = homeElements)
 
 @app.route('/dashboard/<name>')
 def renderDashboard(name = None):
@@ -166,7 +167,7 @@ def renderLogin():
 	loginElements = pageElements('Virtual Admin Log-in Page', parent = '/login')
 	if request.method == 'POST':
 		if validLogin(request.form):
-			return renderDashboard()
+			return redirect('/login')
 		else:
 			loginElements.error = 'ERROR: Invalid username/password'
 	
@@ -187,14 +188,16 @@ def signUp():
 	else:
 		return render_template('loginPage.html', pgElements = signUpElements)
 
-@app.route('/updateAsana')
-def runUpdateAsana():
+@app.route('dashboard/<name>/updateAsana')
+def runUpdateAsana(name = None):
 	result = q.enqueue(updateAsana, 'debug', 'debug')
 	# updateAsana()
 	print result
 	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
-	return render_template('homePage.html', pgElements = homeElements)
+	return redirect('/dashboard/%s'%name)
+	# return render_template('dashboardPage.html', pgElements = homeElements)
 
 if __name__ == '__main__':
 	app.debug = True
 	app.run()
+
