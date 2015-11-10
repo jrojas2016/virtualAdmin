@@ -31,10 +31,6 @@ app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
 q = Queue(connection=conn)
 
-'''Drive OAuth2 Parameters'''
-CLIENT_ID = '524633805553-23c1uoh4vi5cvae0ka764k4dga1l94t3.apps.googleusercontent.com'
-CLIENT_SECRET = 'huSGQ17PvqE46i6q57UxDXyY'
-
 '''MongoDB Client & Collections'''
 client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
 va_db = client['heroku_9n5zjh5h']
@@ -166,14 +162,12 @@ def renderDashboard(name = None):
 @app.route('/oauth2callback')
 def oauth2callback():
 	print "Pre_flow"
-	flow = client.OAuth2WebServerFlow(
-		client_id = CLIENT_ID,
-		client_secret = CLIENT_SECRET,
-		scope='https://www.googleapis.com/auth/drive',
-		redirect_uri=url_for('oauth2callback'))
-
-	print flow
-
+	flow = client.flow_from_clientsecrets(
+    	'client_secrets.json',
+    	scope='https://www.googleapis.com/auth/drive',
+    	redirect_uri=url_for('oauth2callback', _external=True),
+    	include_granted_scopes=True)
+	print request.args
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
 		print auth_uri
