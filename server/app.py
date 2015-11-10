@@ -12,6 +12,8 @@ author(s):
 import smtplib
 import hashlib
 import datetime
+import json, base64
+import urllib, urllib2
 from rq import Queue
 from sys import path
 from os import getcwd
@@ -142,8 +144,11 @@ def runCreateAgenda(name = None):
 
 	gauth = GoogleAuth()
 	gauth_url = gauth.GetAuthUrl()
-	code = redirect(gauth_url)
-	gauth.Auth(code)
+	req = urllib2.Request( gauth_url )
+	response = urllib2.urlopen( req )
+	res = response.read()
+	print res
+	gauth.Auth(res['id'])
 	drive = GoogleDrive(gauth)	#gdrive service instance
 
 	# createAgenda(projKey, drive)
