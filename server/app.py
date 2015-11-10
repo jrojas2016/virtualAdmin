@@ -149,25 +149,25 @@ def confirmUser(usrName = None):
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
-	result = q.enqueue(createAgenda, 'debug')
-	print result
+	res = q.enqueue(createAgenda, 'debug')
 	# createAgenda()
-	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
+	# homeElements = pageElements('Virtual Admin Dashboard')
 	return redirect('/dashboard/%s'%name)
 	# return render_template('dashboardPage.html', pgElements = homeElements)
 
 @app.route('/dashboard/<name>')
 def renderDashboard(name = None):
-	homeElements = pageElements('Virtual Admin Dashboard', parent = '/dashboard')
-	homeElements.usr = name
-	return render_template('dashboardPage.html', pgElements = homeElements)
+	dashElements = pageElements('Virtual Admin Dashboard', parent = '/dashboard')
+	dashElements.usr = name
+	return render_template('dashboardPage.html', pgElements = dashElements)
 
 @app.route('/login', methods = ['GET', 'POST'])
 def renderLogin():
 	loginElements = pageElements('Virtual Admin Log-in Page', parent = '/login')
 	if request.method == 'POST':
 		if validLogin(request.form):
-			return redirect('/login')
+			usr_name = request.form['email'].split('@')[0]
+			return redirect('/dashboard/%s'%usr_name)
 		else:
 			loginElements.error = 'ERROR: Invalid username/password'
 	
@@ -190,9 +190,8 @@ def signUp():
 
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
-	result = q.enqueue(updateAsana, 'debug', 'debug')
+	res = q.enqueue(updateAsana, 'debug', 'debug')
 	# updateAsana()
-	print result
 	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
 	return redirect('/dashboard/%s'%name)
 	# return render_template('dashboardPage.html', pgElements = homeElements)

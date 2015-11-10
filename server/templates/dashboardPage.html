@@ -4,7 +4,7 @@
 	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/home.css') }}">
 </head>
 <body>
-	<h1>{{ pgElements.title }}</h1>
+	<h1>Virtual Admin Dashboard: {{ pgElements.user }}</h1>
 	<form style = 'display: inline' action = '/' method = 'get'>
 		<button class = 'btn'>Log Out</button>
 	</form>
