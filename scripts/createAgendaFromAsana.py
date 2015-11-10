@@ -54,11 +54,11 @@ def postLinkToSlack( gFileLink ):
 	slack_msg = 'Hey <!everyone>, <%s|click this link> to see this week\'s agenda!'%gFileLink
 	slack_res = curl( slack_webhook_url, '{"channel": "#debug", "username": "ReminderBot", "text":"' + slack_msg + '", "icon_emoji": ":mega:"}')
 
-def uploadToDrive( fileName, projKey, gFolders ):
+def uploadToDrive( drive, fileName, projKey, gFolders ):
 	'''Google Drive Authentication'''
-	gauth = GoogleAuth()
-	gauth.LocalWebserverAuth()
-	drive = GoogleDrive(gauth)	#gdrive service instance
+	# gauth = GoogleAuth()
+	# gauth.LocalWebserverAuth()
+	# drive = GoogleDrive(gauth)	#gdrive service instance
 
 	parent_folder_id = ''
 	for indx, cur_folder_name in enumerate(gFolders):
@@ -162,7 +162,7 @@ def writeAgenda( authToken, projectUrl, document, fileName ):
 
 	document.save( fileName )
 
-def createAgenda(projKey):
+def createAgenda(projKey, drive):
 
 	proj_key = projKey
 	gdrive_path = '1. Agendas & Minutes/2015 - 2016'.split('/')
@@ -178,7 +178,7 @@ def createAgenda(projKey):
 	agenda_doc.add_heading( heading, 0 )
 	agenda_doc.add_paragraph( info ).bold = True
 	writeAgenda( auth_token, project_url, agenda_doc, fi_name )
-	uploadToDrive( fi_name, proj_key, gdrive_path )
+	uploadToDrive( drive, fi_name, proj_key, gdrive_path )
 
 if __name__ == '__main__':
 	createAgenda()

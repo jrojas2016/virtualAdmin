@@ -137,8 +137,15 @@ def confirmUser(usrName = None):
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
-	res = q.enqueue(createAgenda, 'debug', timeout=500)
-	# createAgenda()
+	from pydrive.auth import GoogleAuth
+	from pydrive.drive import GoogleDrive
+
+	gauth = GoogleAuth()
+	gauth.LocalWebserverAuth()
+	drive = GoogleDrive(gauth)	#gdrive service instance
+
+	# createAgenda(projKey, drive)
+	res = q.enqueue(createAgenda, 'debug', drive, timeout=500)
 	return redirect(url_for('renderDashboard', name = name))
 
 @app.route('/dashboard/<name>')
@@ -171,8 +178,8 @@ def signUp():
 
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
+	# updateAsana(projKey, chan)
 	res = q.enqueue(updateAsana, 'debug', 'debug', timeout=500)
-	# updateAsana()
 	return redirect(url_for('renderDashboard', name = name))
 
 if __name__ == '__main__':
