@@ -147,6 +147,7 @@ def renderDashboard(name = None):
 
 @app.route('/login', methods = ['GET', 'POST'])
 def renderLogin(err = None):
+	error = None
 	if request.method == 'POST':
 		if validLogin(request.form):
 			usr_name = request.form['email'].split('@')[0]
