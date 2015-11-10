@@ -137,7 +137,7 @@ def confirmUser(usrName = None):
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
-	res = q.enqueue(createAgenda, 'debug')
+	res = q.enqueue(createAgenda, 'debug', timeout=500)
 	# createAgenda()
 	return redirect(url_for('renderDashboard', name = name))
 
@@ -171,7 +171,7 @@ def signUp():
 
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
-	res = q.enqueue(updateAsana, 'debug', 'debug')
+	res = q.enqueue(updateAsana, 'debug', 'debug', timeout=500)
 	# updateAsana()
 	return redirect(url_for('renderDashboard', name = name))
 
