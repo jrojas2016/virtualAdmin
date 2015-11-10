@@ -4,15 +4,15 @@
 	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/home.css') }}">
 </head>
 <body>
-	<h1>Virtual Admin Dashboard: {{ pgElements.user }}</h1>
+	<h1>Virtual Admin Dashboard: {{ usr }}</h1>
 	<form style = 'display: inline' action = '/' method = 'get'>
 		<button class = 'btn'>Log Out</button>
 	</form>
 	<h2>Actions</h2>
-		<form style = 'display: inline' action = '/dashboard/{{ pgElements.user }}/updateAsana' method = 'get'>
+		<form style = 'display: inline' action = '/dashboard/{{ usr }}/updateAsana' method = 'get'>
 			<button class = 'btn'>Remind Users</button>
 		</form>
-		<form style = 'display: inline' action = '/dashboard/{{ pgElements.user }}/createAgenda' method = 'get'>
+		<form style = 'display: inline' action = '/dashboard/{{ usr }}/createAgenda' method = 'get'>
 			<button class = 'btn'>Create Agenda</button>
 		</form>
 </body>

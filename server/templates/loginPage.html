@@ -4,17 +4,17 @@
 	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/login.css') }}">
 </head>
 <body>
-	{% if pgElements.parent == '/signUp' %}
-		<h1>Virtual Admin Login Page</h1>
+	{% if parent == '/signUp' %}
+		<h1>Virtual Admin Sign-Up Page</h1>
 		<form action = "/signUp" method = 'post'>
 			<input type = 'text' name = 'email' placeholder = 'Email'>
 			<input type = 'password' name = 'password' placeholder = 'Password'>
 			<input type = 'submit' value = 'Sign Up'>
 		</form>
 	{% else %}
-		{% if pgElements.error %}
+		{% if err %}
 			<div>
-				<h2>{{ pgElements.error }}</h2>
+				<h2>{{ err }}</h2>
 			</div>
 		{% endif %}
 		<h1>Virtual Admin Login Page</h1>

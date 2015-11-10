@@ -20,7 +20,7 @@ path.append(getcwd())
 from pymongo import MongoClient
 from scripts.updateAsana import updateAsana
 from scripts.createAgendaFromAsana import createAgenda
-from flask import Flask, request, render_template, redirect
+from flask import Flask, request, render_template, redirect, url_for
 
 app = Flask(__name__)
 q = Queue(connection=conn)
@@ -29,17 +29,6 @@ q = Queue(connection=conn)
 client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
 va_db = client['heroku_9n5zjh5h']
 c_chapters = va_db['chapters']
-
-class pageElements:
-	usr = None
-	error = None
-
-	def __init__(self, title, parent = '/'):
-		self.title = title
-		self.parent = parent
-
-	def changeParent(self, parent):
-		self.parent = parent
 
 def sendEmailConfirmation(postForm):
 	#Implement email confirmation after sign-up
@@ -122,8 +111,7 @@ def validLogin(postForm):
 
 @app.route('/')
 def renderLanding():
-	landingElements = pageElements('Virtual Admin Landing Page')
-	return render_template('landingPage.html', pgElements = landingElements)
+	return render_template('landingPage.html')
 
 @app.route('/confirm/<usrName>')
 def confirmUser(usrName = None):
@@ -143,58 +131,48 @@ def confirmUser(usrName = None):
 		print 'User was successfully confirmed!'
 	else:
 		print 'Failed to confirm user!'
+		return
 
-	loginElements = pageElements('Virtual Admin Log-in Page', parent = '/login')
-	return render_template('loginPage.html', pgElements = loginElements)
+	return redirect(url_for('renderLogin'))
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
 	res = q.enqueue(createAgenda, 'debug')
 	# createAgenda()
-	# homeElements = pageElements('Virtual Admin Dashboard')
-	return redirect('/dashboard/%s'%name)
-	# return render_template('dashboardPage.html', pgElements = homeElements)
+	return redirect(url_for('renderDashboard', name = name))
 
 @app.route('/dashboard/<name>')
 def renderDashboard(name = None):
-	dashElements = pageElements('Virtual Admin Dashboard', parent = '/dashboard')
-	dashElements.usr = name
-	return render_template('dashboardPage.html', pgElements = dashElements)
+	return render_template('dashboardPage.html', parent = '/dashboard', usr = name)
 
 @app.route('/login', methods = ['GET', 'POST'])
-def renderLogin():
-	loginElements = pageElements('Virtual Admin Log-in Page', parent = '/login')
+def renderLogin(err = None):
 	if request.method == 'POST':
 		if validLogin(request.form):
 			usr_name = request.form['email'].split('@')[0]
-			return redirect('/dashboard/%s'%usr_name)
+			return redirect(url_for('renderDashboard', name = usr_name))
 		else:
-			loginElements.error = 'ERROR: Invalid username/password'
+			error = 'Invalid username/password!\nPlease check your credentials.'
 	
-	return render_template('loginPage.html', pgElements = loginElements)
+	return render_template('loginPage.html', parent = '/login', err = error)
 
 @app.route('/signUp', methods = ['GET','POST'])
 def signUp():
-	signUpElements = pageElements('Virtual Admin Sign-Up Page', parent = '/signUp')
 	if request.method == 'POST':
 		status = signUpUser(request.form)
 		if status:
-			loginElements = pageElements('Virtual Admin Sign-Up Page', parent = '/login')
-			loginElements.error = status
-			return render_template('loginPage.html', pgElements = loginElements)
+			return redirect(url_for('renderLogin', err = status))
 		else:
 			sendEmailConfirmation(request.form)
 			return render_template('signUpConfirmationPage.html')
 	else:
-		return render_template('loginPage.html', pgElements = signUpElements)
+		return render_template('loginPage.html', parent = '/signUp')
 
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
 	res = q.enqueue(updateAsana, 'debug', 'debug')
 	# updateAsana()
-	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
-	return redirect('/dashboard/%s'%name)
-	# return render_template('dashboardPage.html', pgElements = homeElements)
+	return redirect(url_for('renderDashboard', name = name)
 
 if __name__ == '__main__':
 	app.debug = True
