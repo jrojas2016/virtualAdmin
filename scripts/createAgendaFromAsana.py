@@ -162,9 +162,9 @@ def writeAgenda( authToken, projectUrl, document, fileName ):
 
 	document.save( fileName )
 
-def createAgenda():
+def createAgenda(projKey):
 
-	proj_key = 'agenda'
+	proj_key = projKey
 	gdrive_path = '1. Agendas & Minutes/2015 - 2016'.split('/')
 	projects = {'debug': '54999242167362', 'agenda': '47058473474991'}
 	project_url = 'https://app.asana.com/api/1.0/projects/%s/tasks'%projects[proj_key]

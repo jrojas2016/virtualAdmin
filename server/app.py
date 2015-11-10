@@ -149,7 +149,7 @@ def confirmUser(usrName = None):
 
 @app.route('/createAgenda')
 def runCreateAgenda():
-	result = q.enqueue(createAgenda)
+	result = q.enqueue(createAgenda, 'debug')
 	print result
 	# createAgenda()
 	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page
@@ -189,7 +189,7 @@ def signUp():
 
 @app.route('/updateAsana')
 def runUpdateAsana():
-	result = q.enqueue(updateAsana)
+	result = q.enqueue(updateAsana, 'debug', 'debug')
 	# updateAsana()
 	print result
 	homeElements = pageElements('Virtual Admin Dashboard')	#Redirect page

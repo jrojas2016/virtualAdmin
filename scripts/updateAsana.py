@@ -143,10 +143,10 @@ def getAsanaTasks( authToken, channel, projectUrl ):
 				if taskPending( cur_task_millis_due ) or taskOverdue( cur_task_millis_due ):
 					remindUser( channel, j_cur_task, status = 'pending' )
 
-def updateAsana():
+def updateAsana(projKey, chan):
 
-	proj_key = 'deliverables'
-	channel = 'general'
+	proj_key = projKey
+	channel = chan
 
 	projects = {'debug': '54999242167362', 'deliverables': '24426061282606'}
 	project_url = 'https://app.asana.com/api/1.0/projects/%s/tasks'%projects[ proj_key ]
