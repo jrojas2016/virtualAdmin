@@ -9,6 +9,7 @@ Description:
 author(s):
 	Jorge Rojas
 '''
+import uuid
 import smtplib
 import hashlib
 import datetime
@@ -26,6 +27,7 @@ from flask import Flask, request, render_template, redirect, url_for, session, e
 
 '''Web & Worker Clients'''
 app = Flask(__name__)
+app.secret_key = str(uuid.uuid4())
 q = Queue(connection=conn)
 
 '''Drive OAuth2 Parameters'''
@@ -213,8 +215,6 @@ def runUpdateAsana(name = None):
 	return redirect(url_for('renderDashboard', name = session['usrName']))
 
 if __name__ == '__main__':
-	import uuid
-  	app.secret_key = str(uuid.uuid4())
 	app.debug = True
 	app.run()
 
