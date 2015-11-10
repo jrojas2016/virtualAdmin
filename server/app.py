@@ -165,7 +165,7 @@ def oauth2callback():
 		client_id = CLIENT_ID,
         client_secret = CLIENT_SECRET,
         scope='https://www.googleapis.com/auth/drive',
-        redirect_uri=url_for('oauth2callback', _external = True)
+        redirect_uri=url_for('oauth2callback')
     )
 	
 	print "Post-Flow"
