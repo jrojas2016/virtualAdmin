@@ -24,11 +24,20 @@ from scripts.updateAsana import updateAsana
 from scripts.createAgendaFromAsana import createAgenda
 from flask import Flask, request, render_template, redirect, url_for, session, escape
 
+'''Web Server'''
 app = Flask(__name__)
-CLIENT_SECRET = 'huSGQ17PvqE46i6q57UxDXyY'
-CLIENT_ID = '524633805553-23c1uoh4vi5cvae0ka764k4dga1l94t3.apps.googleusercontent.com'
 app.secret_key = '\x14\n\x92\xb1V\x98\xad\xb8u^\xd3v\x8a\x07\x82\xcd\xd4-l\x84#\x8bw/'
 q = Queue(connection=conn)
+
+'''Drive OAuth2 Parameters'''
+CLIENT_ID = '524633805553-23c1uoh4vi5cvae0ka764k4dga1l94t3.apps.googleusercontent.com'
+CLIENT_SECRET = 'huSGQ17PvqE46i6q57UxDXyY'
+flow = client.OAuth2WebServerFlow(
+		client_id = CLIENT_ID,
+		client_secret = CLIENT_SECRET,
+		scope='https://www.googleapis.com/auth/drive',
+		redirect_uri=url_for('oauth2callback')
+)
 
 '''MongoDB Client & Collections'''
 client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
@@ -160,16 +169,7 @@ def renderDashboard(name = None):
 
 @app.route('/oauth2callback')
 def oauth2callback():
-	print "Pre-Flow"
-	flow = client.OAuth2WebServerFlow(
-		client_id = CLIENT_ID,
-        client_secret = CLIENT_SECRET,
-        scope='https://www.googleapis.com/auth/drive',
-        redirect_uri=url_for('oauth2callback')
-    )
-	
-	print "Post-Flow"
-
+	print "post-flow"	
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
 		return redirect(auth_uri)
