@@ -9,6 +9,7 @@ Description:
 author(s):
 	Jorge Rojas
 '''
+import sys
 import uuid
 import smtplib
 import hashlib
@@ -16,10 +17,9 @@ import logging
 import datetime
 import json, base64
 from rq import Queue
-from sys import path
 from os import getcwd
 from worker import conn
-path.append(getcwd())
+sys.path.append(getcwd())
 from oauth2client import client
 from pymongo import MongoClient
 from scripts.updateAsana import updateAsana
