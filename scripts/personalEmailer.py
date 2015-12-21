@@ -21,6 +21,7 @@ Revisions:
 	1.0 - Added support for arbitrary email subject line
 '''
 import smtplib
+import getpass
 import openpyxl
 from optparse import OptionParser
 
@@ -45,7 +46,7 @@ def sendPersonalEmail( receivers ):
 	receivers - dictionary -- name/email key/value pair to receive email 
 	'''
 	sender = raw_input("Account email: ")
-	sender_password = raw_input("Type password for %s email account: "%sender)
+	sender_password = getpass.getpass("Type password for %s email account: "%sender)
 	try:
 		server = smtplib.SMTP("smtp.gmail.com",587)
 		server.starttls()
@@ -104,7 +105,7 @@ def main():
 			exit(0)
 		else:
 			receivers["MailBot"] = options.debugReceiver
-
+			
 	sendPersonalEmail( receivers )
 
 if __name__ == '__main__':

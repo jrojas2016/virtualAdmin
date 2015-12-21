@@ -52,13 +52,14 @@ def getUser( taskStructDict ):
 def postLinkToSlack( gFileLink ):
 	slack_webhook_url = 'https://hooks.slack.com/services/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'
 	slack_msg = 'Hey <!everyone>, <%s|click this link> to see this week\'s agenda!'%gFileLink
-	slack_res = curl( slack_webhook_url, '{"channel": "#debug", "username": "ReminderBot", "text":"' + slack_msg + '", "icon_emoji": ":mega:"}')
+	slack_res = curl( slack_webhook_url, '{"channel": "#general", "username": "ReminderBot", "text":"' + slack_msg + '", "icon_emoji": ":mega:"}')
 
 def uploadToDrive( drive, fileName, projKey, gFolders ):
 	'''Google Drive Authentication'''
-	# gauth = GoogleAuth()
-	# gauth.LocalWebserverAuth()
-	# drive = GoogleDrive(gauth)	#gdrive service instance
+	if drive == None:
+		gauth = GoogleAuth()
+		gauth.LocalWebserverAuth()
+		drive = GoogleDrive(gauth)	#gdrive service instance
 
 	parent_folder_id = ''
 	for indx, cur_folder_name in enumerate(gFolders):
@@ -162,7 +163,7 @@ def writeAgenda( authToken, projectUrl, document, fileName ):
 
 	document.save( fileName )
 
-def createAgenda(projKey, drive):
+def createAgenda(projKey, drive = None):
 
 	proj_key = projKey
 	gdrive_path = '1. Agendas & Minutes/2015 - 2016'.split('/')
