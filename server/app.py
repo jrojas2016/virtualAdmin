@@ -29,6 +29,8 @@ from flask import Flask, request, render_template, redirect, url_for, session, e
 '''Web & Worker Clients'''
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.ERROR)
 q = Queue(connection=conn)
 
 '''MongoDB Client & Collections'''
