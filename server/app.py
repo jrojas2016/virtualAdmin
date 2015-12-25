@@ -29,6 +29,8 @@ from flask import Flask, request, render_template, redirect, url_for, session, e
 '''Web & Worker Clients'''
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
+# app.config.from_object('yourapplication.default_settings')
+# app.config.from_envvar('YOURAPPLICATION_SETTINGS')
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
 q = Queue(connection=conn)
@@ -167,9 +169,8 @@ def oauth2callback():
 	flow = client.flow_from_clientsecrets(
     	'client_secrets.json',
     	scope='https://www.googleapis.com/auth/drive',
-    	redirect_uri=url_for('oauth2callback', _external=True),
-    	include_granted_scopes=True)
-	print request.args
+    	redirect_uri=url_for('oauth2callback', _external=False))
+	print "Requests", request.args
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
 		print auth_uri
