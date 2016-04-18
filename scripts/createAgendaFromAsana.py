@@ -182,7 +182,9 @@ def createAgenda(projKey, drive = None):
 	uploadToDrive( drive, fi_name, proj_key, gdrive_path )
 
 if __name__ == '__main__':
-	createAgenda()
+	proj_key = sys.argv[1]	#Proj Key from terminal
+	# print proj_key
+	createAgenda(proj_key)
 
 
 

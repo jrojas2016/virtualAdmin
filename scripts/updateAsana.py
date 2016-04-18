@@ -5,6 +5,7 @@ asks for updates on pending tasks
 author(s):
 	Jorge Rojas
 '''
+import sys
 import time
 import smtplib
 import json, base64
@@ -17,7 +18,7 @@ receivers = []
 receiver_names = []
 
 current_milli_time = lambda: int( round( time.time() * 1000 ) )
-slack_auth_token = 'xoxp-4946444601-6490187520-12150502211-608959dc10'
+slack_auth_token = 'xoxp-4946444601-6490187520-35379050275-6c6aaef4ab'
 asana_auth_token = base64.encodestring( '3IOlvKIK.qCLaoBd9o9vQzENWfspMQUl:' ).replace( '\n', '' )
 
 def curl( url, data = None, authToken = None ):
@@ -36,10 +37,10 @@ def curl( url, data = None, authToken = None ):
 
 def getSlackUsers():
 	user_list_url = 'https://slack.com/api/users.list?token=%s'%slack_auth_token
-	slack_webhook_url = 'https://hooks.slack.com/services/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'
+	# slack_webhook_url = 'https://hooks.slack.com/services/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'
 	slack_users = curl( user_list_url )
 	j_slack_users = json.loads( slack_users )
-
+	# print j_slack_users
 	return j_slack_users['members']
 
 slack_members = getSlackUsers()
@@ -84,7 +85,7 @@ def sendSlackReminder( userName, userEmail, taskName, channel):
 	'''
 	Remind the user via Slack mention
 	'''
-	slack_webhook_url = 'https://hooks.slack.com/services/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'
+	slack_webhook_url = 'https://hooks.slack.com/services/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'
 
 	for cur_user in slack_members:
 		'''
@@ -144,6 +145,8 @@ def updateAsana(projKey, chan):
 	getAsanaTasks( asana_auth_token, channel, project_url )
 
 if __name__ == '__main__':
-	updateAsana('debug', 'debug')
+	proj_key = sys.argv[1]
+	chan = sys.argv[2]
+	updateAsana(proj_key, chan)
 
 
