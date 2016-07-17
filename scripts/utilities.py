@@ -22,7 +22,4 @@ def info(title):
     print 'process id:', os.getpid()
 
 if __name__ == '__main__':
-	info('utilities')
-	p = Process(target=f, args=('bob',))
-	p.start()
-	p.join()
+	pass

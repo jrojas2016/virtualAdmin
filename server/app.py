@@ -186,7 +186,7 @@ def oauth2callback():
 	flow = client.flow_from_clientsecrets(
     	'client_secrets.json',
     	scope = 'https://www.googleapis.com/auth/drive',
-    	redirect_uri = host_url + url_for('oauth2callback', _external = False)
+    	redirect_uri = url_for('oauth2callback', _external = False)
     )
 	print request.args	#DEBUG
 	if 'code' not in request.args:
@@ -226,7 +226,7 @@ def signUp():
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
 	# updateAsana(projKey, slackChan)
-	p = Process(target=updateAsana, args=('deliverables', 'debug',) )
+	p = Process(target=updateAsana, args=('deliverables', 'strictly_business',) )
 	p.start()
 	# res = q.enqueue(updateAsana, 'deliverables', 'debug', timeout = 5000, job_id = str(jobCnt[0]))
 	# jobCnt[0] += 1
