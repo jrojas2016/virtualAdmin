@@ -34,7 +34,6 @@ from scripts.createAgenda import createAgenda
 '''Web & Worker Clients'''
 # host_url = 'http://127.0.0.1:5000'
 host_url = 'http://virtualadmin.herokuapp.com'
-# curr_user = {'usrName':'', 'email':''}
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -160,7 +159,7 @@ def runCreateAgenda(name = None):
 		return redirect(url_for('oauth2callback'))
 
 	#createAgenda(projKey, slackChan, gAuthCode)
-	p = Process(target=createAgenda, args=('agenda', 'debug', session['code'],) )
+	p = Process(target=createAgenda, args=('agenda', 'strictly_business', session['code'],) )
 	p.start()
 	return redirect(url_for('renderDashboard', name = name))
 
