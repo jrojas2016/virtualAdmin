@@ -183,6 +183,7 @@ def renderDashboard(name = None):
 
 @app.route('/oauth2callback')
 def oauth2callback():
+	print url_for('oauth2callback')
 	flow = client.flow_from_clientsecrets(
     	'client_secrets.json',
     	scope = 'https://www.googleapis.com/auth/drive',
