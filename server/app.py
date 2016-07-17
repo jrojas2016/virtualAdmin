@@ -9,35 +9,49 @@ Description:
 author(s):
 	Jorge Rojas
 '''
+
+'''Utility Imports'''
 import sys
 import uuid
 import smtplib
 import hashlib
 import logging
 import datetime
-import json, base64
-from rq import Queue
 from os import getcwd
-from worker import conn
 sys.path.append(getcwd())
+# from optparse import OptionParser
+from multiprocessing import Process
+
+'''Web Imports'''
+# from worker import conn
 from oauth2client import client
 from pymongo import MongoClient
+from rq import Queue, get_failed_queue
+from flask import Flask, request, render_template, redirect, url_for, session
+
+'''App Imports'''
 from scripts.updateAsana import updateAsana
-from scripts.createAgendaFromAsana import createAgenda
-from flask import Flask, request, render_template, redirect, url_for, session, escape
+from scripts.createAgenda import createAgenda
 
 '''Web & Worker Clients'''
+# jobCnt = [0]
+#For debug change async to False
+# q = Queue(connection = conn, async = True)
+# print q.connection
+# host_url = 'http://127.0.0.1:5000'
+host_url = 'http://virtualadmin.herokuapp.com'
+curr_user = {'usrName':'', 'email':''}
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
-# app.config.from_object('yourapplication.default_settings')
-# app.config.from_envvar('YOURAPPLICATION_SETTINGS')
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
-q = Queue(connection=conn)
 
 '''MongoDB Client & Collections'''
-client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
-va_db = client['heroku_9n5zjh5h']
+mongo_client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
+va_db = mongo_client['heroku_9n5zjh5h']
+#For Localhost use only
+# mongo_client = MongoClient()
+# va_db = mongo_client['virtual-admin-db']
 c_chapters = va_db['chapters']
 
 def sendEmailConfirmation(postForm):
@@ -54,7 +68,7 @@ def sendEmailConfirmation(postForm):
 		'',
 		'Thanks for joining Virtual Admin. To confirm your email please click the link below:',
 		'',
-		'http://virtualadmin.herokuapp.com/confirm/%s'%session['usrName'],
+		'{0}/confirm/{1}'.format(host_url, session['usrName']),
 		'',
 		'Sincerely,',
 		'Virtual Admin Team'
@@ -63,7 +77,7 @@ def sendEmailConfirmation(postForm):
 	message = '\r\n'.join( msg )
 
 	try:
-		server.sendmail( sender, session['email'], message )
+		server.sendmail( sender, curr_user['email'], message )
 		print 'Email sent successfully to %s'%postForm['email']
 	except:
 		print 'Email failed to send to %s!'%postForm['email']
@@ -72,8 +86,8 @@ def sendEmailConfirmation(postForm):
 
 def signUpUser(postForm):
 	newUser = True
-	session['email'] = postForm['email']
-	session['usrName'] = usr_email.split('@')[0]
+	curr_user['email'] = postForm['email']
+	curr_user['usrName'] = postForm['email'].split('@')[0]
 	usr_psswrd = postForm['password']
 	post = {
 		'email': session['email'],
@@ -85,9 +99,9 @@ def signUpUser(postForm):
 		'organization': None
 	}
 
-	for cur_chapter in c_chapters.find():
-		if cur_chapter['email'] == session['email']:
-			newUser = False
+	chapter = c_chapters.find({ 'email':curr_user['email'] })[0]
+	if chapter:
+		newUser = False
 
 	if newUser:
 		c_chapters.insert_one(post)
@@ -97,7 +111,7 @@ def signUpUser(postForm):
 	elif not newUser and usr_psswrd == None:
 		status = 'Password is a required field!'
 	else:
-		status = 'There already exists an account with the email %s. Please Log in here: http://virtualadmin.herokuapp.com/login'%usr_email
+		status = 'There already exists an account with the email {0}. Please Log in here: {1}/login'.format(usr_email, host_url)
 
 	return status
 
@@ -107,17 +121,18 @@ def validLogin(postForm):
 	Given email and password, authorize user 
 	to access Virtual Admin Dashboard
 	'''
-	psswrd = hashlib.sha512(postForm['password']).hexdigest()
 	usr_name = postForm['email'].split('@')[0]
-	session['usrName'] = usr_name
-	for cur_chapter in c_chapters.find():
-		if postForm['email'] == cur_chapter['email'] and psswrd == cur_chapter['password']:
-			if cur_chapter['email_confirmed'] == True:
-				return True
-			else:
-				return False
+	psswrd = hashlib.sha512(postForm['password']).hexdigest()
+	chapter = c_chapters.find({ 'email':postForm['email'], 'password':psswrd })[0]
+	if chapter:	#If entry found do...
+		if chapter['email_confirmed'] == True:
+			curr_user['usrName'] = usr_name
+			curr_user['email'] = postForm['email']
+			return True
 		else:
 			return False
+	else:
+		return False
 
 @app.route('/')
 def renderLanding():
@@ -149,15 +164,18 @@ def confirmUser(usrName = None):
 def runCreateAgenda(name = None):
 	if 'credentials' not in session:
 		return redirect(url_for('oauth2callback'))
-	credentials = client.OAuth2Credentials.from_json(session['credentials'])
-	if credentials.access_token_expired:
-		return redirect(url_for('oauth2callback'))
+	# credentials = client.OAuth2Credentials.from_json(session['credentials'])
+	# if credentials.access_token_expired:
+	# 	return redirect(url_for('oauth2callback'))
 
-	drive = GoogleDrive(session['credentials'])
-
-	# createAgenda(projKey, drive)
-	res = q.enqueue(createAgenda, 'debug', drive, timeout=500)
-	return redirect(url_for('renderDashboard', name = session['usrName']))
+	#createAgenda(projKey, slackChan, gAuthCode)
+	p = Process(target=createAgenda, args=('agenda', 'debug', session['credentials'],) )
+	p.start()
+	# res = q.enqueue(createAgenda, 'agenda', 'debug', session['credentials'], timeout = 300000, job_id = str(jobCnt[0]))
+	# jobCnt[0] += 1
+	# if res.result == 0:	#DEBUG
+	# 	print "Agenda was successfully created!"
+	return redirect(url_for('renderDashboard', name = name))
 
 @app.route('/dashboard/<name>')
 def renderDashboard(name = None):
@@ -165,22 +183,21 @@ def renderDashboard(name = None):
 
 @app.route('/oauth2callback')
 def oauth2callback():
-	print "Pre_flow"
 	flow = client.flow_from_clientsecrets(
     	'client_secrets.json',
-    	scope='https://www.googleapis.com/auth/drive',
-    	redirect_uri=url_for('oauth2callback', _external=False))
-	print "Requests", request.args
+    	scope = 'https://www.googleapis.com/auth/drive',
+    	redirect_uri = host_url + url_for('oauth2callback', _external = False)
+    )
+	# print request.args	#DEBUG
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
-		print auth_uri
+		# print auth_uri	#DEBUG
 		return redirect(auth_uri)
 	else:
 		auth_code = request.args.get('code')
-		print auth_code
-		# credentials = flow.step2_exchange(auth_code)
-		session['credentials'] = json.loads(auth_code)
-		return redirect(flask.url_for('runCreateAgenda', name = session['usrName']))
+		# print auth_code	#DEBUG
+		session['credentials'] = auth_code
+		return redirect(url_for('runCreateAgenda', name = curr_user['usrName']))
 	
 
 @app.route('/login', methods = ['GET', 'POST'])
@@ -188,7 +205,7 @@ def renderLogin(err = None):
 	error = None
 	if request.method == 'POST':
 		if validLogin(request.form):
-			return redirect(url_for('renderDashboard', name = session['usrName']))
+			return redirect(url_for('renderDashboard', name = curr_user['usrName']))
 		else:
 			error = 'Invalid username/password!\nPlease check your credentials.'
 	
@@ -208,9 +225,14 @@ def signUp():
 
 @app.route('/dashboard/<name>/updateAsana')
 def runUpdateAsana(name = None):
-	# updateAsana(projKey, chan)
-	res = q.enqueue(updateAsana, 'debug', 'debug', timeout=500)
-	return redirect(url_for('renderDashboard', name = session['usrName']))
+	# updateAsana(projKey, slackChan)
+	p = Process(target=updateAsana, args=('deliverables', 'debug',) )
+	p.start()
+	# res = q.enqueue(updateAsana, 'deliverables', 'debug', timeout = 5000, job_id = str(jobCnt[0]))
+	# jobCnt[0] += 1
+	# if res.result == 0:	#DEBUG
+	# 	print "Update to Asana was successfull!"
+	return redirect(url_for('renderDashboard', name = name))
 
 if __name__ == '__main__':
 	app.debug = True

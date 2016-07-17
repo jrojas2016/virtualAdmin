@@ -5,13 +5,16 @@ asks for updates on pending tasks
 author(s):
 	Jorge Rojas
 '''
+
+'''Utility Imports'''
 import sys
 import time
+import urllib
 import smtplib
 import json, base64
-import urllib, urllib2
 # import personalEmailer
 from datetime import datetime
+from utilities import curl, info
 from optparse import OptionParser
 
 receivers = []
@@ -20,20 +23,6 @@ receiver_names = []
 current_milli_time = lambda: int( round( time.time() * 1000 ) )
 slack_auth_token = 'xoxp-4946444601-6490187520-35379050275-6c6aaef4ab'
 asana_auth_token = base64.encodestring( '3IOlvKIK.qCLaoBd9o9vQzENWfspMQUl:' ).replace( '\n', '' )
-
-def curl( url, data = None, authToken = None ):
-
-	if data is not None:
-		req = urllib2.Request( url, data )
-	else:
-		req = urllib2.Request( url )
-
-	if authToken is not None:
-		req.add_header( 'Authorization', 'Basic %s'%authToken )
-
-	response = urllib2.urlopen( req )
-	res = response.read()
-	return res
 
 def getSlackUsers():
 	user_list_url = 'https://slack.com/api/users.list?token=%s'%slack_auth_token
@@ -70,16 +59,15 @@ def remindUser( channel, taskStructDict, status ):
 	user_name, user_email = getAsanaUser( taskStructDict )
 	receivers.append( str( user_email ) )
 	receiver_names.append( str( user_name ) )
-	# print 'Name: %s >> Email: %s'%( user_name, user_email )
+	# print 'Name: %s >> Email: %s'%( user_name, user_email )	#DEBUG
 
 	story_url = 'https://app.asana.com/api/1.0/tasks/%s/stories'%task_id
 	data = urllib.urlencode( { 'text': 'Please provide an update regarding this task and update the due date accordingly!' } )
 	task_story = curl( story_url, data, asana_auth_token )
 	j_task_story = json.loads( task_story )[ 'data' ]
-	print 'POST Successful: %s'%j_task_story[ 'text' ]
+	print 'POST Successful: %s.'%j_task_story[ 'text' ]
 
 	sendSlackReminder( user_name, user_email, task_name, channel )
-	# personalEmailer.sendEmailReminder( user_name, user_email, task_name, status )
 
 def sendSlackReminder( userName, userEmail, taskName, channel):
 	'''
@@ -100,9 +88,13 @@ def sendSlackReminder( userName, userEmail, taskName, channel):
 			
 			try:
 				slack_res = curl( slack_webhook_url, '{"channel": "#' + channel + '", "username": "ReminderBot", "text":' + slack_reminder_msg + ', "icon_emoji": ":mega:"}')
-				print 'Successfully sent reminder to %s'%userName
+				print 'Successfully sent reminder to %s.'%userName
 			except:
-				print 'Failed to send reminder to %s'%userName
+				print 'Failed to send reminder to %s.'%userName
+
+def sendSMSReminder(userPhonNumber, taskName):
+	#TODO
+	pass
 
 def getAsanaTasks( authToken, channel, projectUrl ):
 	all_tasks = curl( projectUrl, authToken = authToken )
@@ -134,10 +126,10 @@ def getAsanaTasks( authToken, channel, projectUrl ):
 			if taskPending( cur_task_millis_due ):
 				remindUser( channel, cur_task, status = 'pending' )
 
-def updateAsana(projKey, chan):
-
+def updateAsana(projKey, slackChan):
+	info('function: updateAsana')
 	proj_key = projKey
-	channel = chan
+	channel = slackChan
 
 	projects = {'debug': '54999242167362', 'deliverables': '24426061282606'}
 	project_url = 'https://app.asana.com/api/1.0/projects/%s/tasks?opt_fields=due_on,assignee,name,completed'%projects[ proj_key ]
@@ -145,8 +137,21 @@ def updateAsana(projKey, chan):
 	getAsanaTasks( asana_auth_token, channel, project_url )
 
 if __name__ == '__main__':
-	proj_key = sys.argv[1]
-	chan = sys.argv[2]
+	parser = OptionParser()
+
+	parser.add_option( "--projKey",
+					dest="projKey",
+					default = "debug",
+					help="Asana Project Key: debug or deliverables. Default value is debug")
+
+	parser.add_option( "--chan",
+					dest="chan",
+					default = "debug",
+					help="Slack channel name. Do not include the pound (#) sign. Default value is debug")
+
+	(options, args) = parser.parse_args()
+	proj_key = options.projKey
+	chan = options.chan
 	updateAsana(proj_key, chan)
 
 
