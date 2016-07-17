@@ -40,7 +40,7 @@ from scripts.createAgenda import createAgenda
 # print q.connection
 # host_url = 'http://127.0.0.1:5000'
 host_url = 'http://virtualadmin.herokuapp.com'
-curr_user = {'usrName':'', 'email':''}
+# curr_user = {'usrName':'', 'email':''}
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -86,8 +86,8 @@ def sendEmailConfirmation(postForm):
 
 def signUpUser(postForm):
 	newUser = True
-	curr_user['email'] = postForm['email']
-	curr_user['usrName'] = postForm['email'].split('@')[0]
+	session['email'] = postForm['email']
+	session['usrName'] = postForm['email'].split('@')[0]
 	usr_psswrd = postForm['password']
 	post = {
 		'email': session['email'],
@@ -99,7 +99,7 @@ def signUpUser(postForm):
 		'organization': None
 	}
 
-	chapter = c_chapters.find({ 'email':curr_user['email'] })[0]
+	chapter = c_chapters.find({ 'email':session['email'] })[0]
 	if chapter:
 		newUser = False
 
@@ -126,8 +126,8 @@ def validLogin(postForm):
 	chapter = c_chapters.find({ 'email':postForm['email'], 'password':psswrd })[0]
 	if chapter:	#If entry found do...
 		if chapter['email_confirmed'] == True:
-			curr_user['usrName'] = usr_name
-			curr_user['email'] = postForm['email']
+			session['usrName'] = usr_name
+			session['email'] = postForm['email']
 			return True
 		else:
 			return False
@@ -188,16 +188,16 @@ def oauth2callback():
     	scope = 'https://www.googleapis.com/auth/drive',
     	redirect_uri = host_url + url_for('oauth2callback', _external = False)
     )
-	# print request.args	#DEBUG
+	print request.args	#DEBUG
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
-		# print auth_uri	#DEBUG
+		print auth_uri	#DEBUG
 		return redirect(auth_uri)
 	else:
 		auth_code = request.args.get('code')
-		# print auth_code	#DEBUG
+		print auth_code	#DEBUG
 		session['credentials'] = auth_code
-		return redirect(url_for('runCreateAgenda', name = curr_user['usrName']))
+		return redirect(url_for('runCreateAgenda', name = session['usrName']))
 	
 
 @app.route('/login', methods = ['GET', 'POST'])
@@ -205,7 +205,7 @@ def renderLogin(err = None):
 	error = None
 	if request.method == 'POST':
 		if validLogin(request.form):
-			return redirect(url_for('renderDashboard', name = curr_user['usrName']))
+			return redirect(url_for('renderDashboard', name = session['usrName']))
 		else:
 			error = 'Invalid username/password!\nPlease check your credentials.'
 	
