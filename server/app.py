@@ -26,6 +26,8 @@ from multiprocessing import Process
 # from worker import conn
 from oauth2client import client
 from pymongo import MongoClient
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 from rq import Queue, get_failed_queue
 from flask import Flask, request, render_template, redirect, url_for, session
 
@@ -162,14 +164,14 @@ def confirmUser(usrName = None):
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
-	if 'credentials' not in session:
+	if 'drive' not in session:
 		return redirect(url_for('oauth2callback'))
 	# credentials = client.OAuth2Credentials.from_json(session['credentials'])
 	# if credentials.access_token_expired:
 	# 	return redirect(url_for('oauth2callback'))
 
-	#createAgenda(projKey, slackChan, gAuthCode)
-	p = Process(target=createAgenda, args=('agenda', 'debug', session['credentials'],) )
+	#createAgenda(projKey, slackChan, drive)
+	p = Process(target=createAgenda, args=('agenda', 'debug', session['drive'],) )
 	p.start()
 	# res = q.enqueue(createAgenda, 'agenda', 'debug', session['credentials'], timeout = 300000, job_id = str(jobCnt[0]))
 	# jobCnt[0] += 1
@@ -196,11 +198,11 @@ def oauth2callback():
 	else:
 		auth_code = request.args.get('code')
 		# print auth_code	#DEBUG
-		session['credentials'] = auth_code
-		try:
-			flow.step2_exchange(auth_code)
-		except e:
-			raise AuthenticationError('OAuth2 code exchange failed: %s' % e)
+		gauth = GoogleAuth()
+		gauth.Auth(auth_code)
+		drive = GoogleDrive(gauth)
+		session['drive'] = drive
+
 		return redirect(url_for('runCreateAgenda', name = session['usrName']))
 	
 

@@ -48,15 +48,12 @@ def postLinkToSlack( gFileLink, chan = 'debug' ):
 	slack_res = curl( slack_webhook_url, slack_payload )
 	print "Agenda's link was succesfully posted on Slack."
 
-def uploadToDrive( gAuthCode, fileName, gFolderID, slackChan):
+def uploadToDrive( drive = None, fileName, gFolderID, slackChan):
 	'''Google Drive Authentication'''
-	gauth = GoogleAuth()
-	if gAuthCode == None:
+	if drive == None:
+		gauth = GoogleAuth()
 		gauth.LocalWebserverAuth()
 		drive = GoogleDrive(gauth)	#gdrive service instance
-	else:
-		gauth.Auth(gAuthCode)
-		drive = GoogleDrive(gauth)
 
 	#fileName[8:] removes agendas/ from filename
 	#agenda/ used for local storage
@@ -147,7 +144,7 @@ def writeAgenda( authToken, projectUrl, document, fileName ):
 
 	document.save( fileName )
 
-def createAgenda(projKey, slackChan = None, gAuthCode = None):
+def createAgenda(projKey, slackChan = None, drive = None):
 	#Needs updating if path changes
 	# gdrive_path = '00 Internal/03 Agendas & Minutes/2015 - 2016'.split('/')	
 	info('function: createAgenda')
@@ -170,7 +167,7 @@ def createAgenda(projKey, slackChan = None, gAuthCode = None):
 	agenda_doc.add_heading( heading, 0 )
 	agenda_doc.add_paragraph( createDate ).bold = True
 	writeAgenda( auth_token, project_url, agenda_doc, fi_name )
-	uploadToDrive( gAuthCode, fi_name, gFolders[projKey], slackChan )
+	uploadToDrive( drive, fi_name, gFolders[projKey], slackChan )
 
 if __name__ == '__main__':
 	parser = OptionParser()
@@ -189,7 +186,7 @@ if __name__ == '__main__':
 	proj_key = options.projKey	#Proj Key from terminal
 	chan = options.chan
 	# print proj_key
-	createAgenda(proj_key, slackChan = chan, gAuthCode = None)
+	createAgenda(proj_key, slackChan = chan, drive = None)
 
 '''
 TODO:
