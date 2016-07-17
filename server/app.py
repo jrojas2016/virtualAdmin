@@ -23,12 +23,8 @@ sys.path.append(getcwd())
 from multiprocessing import Process
 
 '''Web Imports'''
-# from worker import conn
-from oauth2client import client
 from pymongo import MongoClient
-from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
-from rq import Queue, get_failed_queue
+from oauth2client import client
 from flask import Flask, request, render_template, redirect, url_for, session
 
 '''App Imports'''
@@ -36,10 +32,6 @@ from scripts.updateAsana import updateAsana
 from scripts.createAgenda import createAgenda
 
 '''Web & Worker Clients'''
-# jobCnt = [0]
-#For debug change async to False
-# q = Queue(connection = conn, async = True)
-# print q.connection
 # host_url = 'http://127.0.0.1:5000'
 host_url = 'http://virtualadmin.herokuapp.com'
 # curr_user = {'usrName':'', 'email':''}
@@ -164,19 +156,12 @@ def confirmUser(usrName = None):
 
 @app.route('/dashboard/<name>/createAgenda')
 def runCreateAgenda(name = None):
-	if 'drive' not in session:
+	if 'code' not in session:
 		return redirect(url_for('oauth2callback'))
-	# credentials = client.OAuth2Credentials.from_json(session['credentials'])
-	# if credentials.access_token_expired:
-	# 	return redirect(url_for('oauth2callback'))
 
-	#createAgenda(projKey, slackChan, drive)
-	p = Process(target=createAgenda, args=('agenda', 'debug', session['drive'],) )
+	#createAgenda(projKey, slackChan, gAuthCode)
+	p = Process(target=createAgenda, args=('agenda', 'debug', session['code'],) )
 	p.start()
-	# res = q.enqueue(createAgenda, 'agenda', 'debug', session['credentials'], timeout = 300000, job_id = str(jobCnt[0]))
-	# jobCnt[0] += 1
-	# if res.result == 0:	#DEBUG
-	# 	print "Agenda was successfully created!"
 	return redirect(url_for('renderDashboard', name = name))
 
 @app.route('/dashboard/<name>')
@@ -198,10 +183,7 @@ def oauth2callback():
 	else:
 		auth_code = request.args.get('code')
 		# print auth_code	#DEBUG
-		gauth = GoogleAuth()
-		gauth.Auth(auth_code)
-		drive = GoogleDrive(gauth)
-		session['drive'] = drive
+		session['code'] = auth_code
 
 		return redirect(url_for('runCreateAgenda', name = session['usrName']))
 	
@@ -234,10 +216,6 @@ def runUpdateAsana(name = None):
 	# updateAsana(projKey, slackChan)
 	p = Process(target=updateAsana, args=('deliverables', 'strictly_business',) )
 	p.start()
-	# res = q.enqueue(updateAsana, 'deliverables', 'debug', timeout = 5000, job_id = str(jobCnt[0]))
-	# jobCnt[0] += 1
-	# if res.result == 0:	#DEBUG
-	# 	print "Update to Asana was successfull!"
 	return redirect(url_for('renderDashboard', name = name))
 
 if __name__ == '__main__':
