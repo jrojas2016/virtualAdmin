@@ -48,7 +48,7 @@ def postLinkToSlack( gFileLink, chan = 'debug' ):
 	slack_res = curl( slack_webhook_url, slack_payload )
 	print "Agenda's link was succesfully posted on Slack."
 
-def uploadToDrive( drive = None, fileName, gFolderID, slackChan):
+def uploadToDrive( drive, fileName, gFolderID, slackChan):
 	'''Google Drive Authentication'''
 	if drive == None:
 		gauth = GoogleAuth()
