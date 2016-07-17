@@ -188,15 +188,19 @@ def oauth2callback():
     	scope = 'https://www.googleapis.com/auth/drive',
     	redirect_uri = host_url + url_for('oauth2callback', _external = False)
     )
-	print request.args	#DEBUG
+	# print request.args	#DEBUG
 	if 'code' not in request.args:
 		auth_uri = flow.step1_get_authorize_url()
-		print auth_uri	#DEBUG
+		# print auth_uri	#DEBUG
 		return redirect(auth_uri)
 	else:
 		auth_code = request.args.get('code')
-		print auth_code	#DEBUG
+		# print auth_code	#DEBUG
 		session['credentials'] = auth_code
+		try:
+			flow.step2_exchange(auth_code)
+		except e:
+			raise AuthenticationError('OAuth2 code exchange failed: %s' % e)
 		return redirect(url_for('runCreateAgenda', name = session['usrName']))
 	
 
