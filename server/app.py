@@ -46,19 +46,19 @@ from scripts.createAgenda import createAgenda
 from scripts.utilities import sendEmailConfirmation
 
 '''Web & Worker Clients'''
-host_url = 'http://127.0.0.1:5000'
-# host_url = 'http://virtualadmin.herokuapp.com'
+# host_url = 'http://127.0.0.1:5000'
+host_url = 'http://virtualadmin.herokuapp.com'
 app = Flask(__name__)
 app.secret_key = str(uuid.uuid4())
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
 
 '''MongoDB Client & Collections'''
-# mongo_client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
-# va_db = mongo_client['heroku_9n5zjh5h']
+mongo_client = MongoClient('mongodb://heroku_9n5zjh5h:7rtcqvms12rtrib2lc2ts26ga8@ds045064.mongolab.com:45064/heroku_9n5zjh5h')
+va_db = mongo_client['heroku_9n5zjh5h']
 #For Localhost use only
-mongo_client = MongoClient()
-va_db = mongo_client['virtual-admin-db']
+# mongo_client = MongoClient()
+# va_db = mongo_client['virtual-admin-db']
 c_chapters = va_db['chapters']
 
 def signUpUser(postForm):
