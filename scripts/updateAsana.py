@@ -8,44 +8,37 @@ author(s):
 
 '''Utility Imports'''
 import sys
-import time
+
+import json
 import urllib
 import smtplib
-import json, base64
 # import personalEmailer
 from datetime import datetime
-from utilities import curl, info
 from optparse import OptionParser
+from utilities import curl, info, taskPending, getAuthToken
 
 receivers = []
 receiver_names = []
 
-current_milli_time = lambda: int( round( time.time() * 1000 ) )
-slack_auth_token = 'xoxp-4946444601-6490187520-35379050275-6c6aaef4ab'
-asana_auth_token = base64.encodestring( '3IOlvKIK.qCLaoBd9o9vQzENWfspMQUl:' ).replace( '\n', '' )
+#Global variables, consider changing during cleanup
+slack_members = []
+slack_auth_token = []
+slack_webhook_url = []
+asana_auth_token = []
 
 def getSlackUsers():
-	user_list_url = 'https://slack.com/api/users.list?token=%s'%slack_auth_token
-	# slack_webhook_url = 'https://hooks.slack.com/services/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'
+	user_list_url = 'https://slack.com/api/users.list?token={0}'.format(slack_auth_token[0])
 	slack_users = curl( user_list_url )
 	j_slack_users = json.loads( slack_users )
 	# print j_slack_users
-	return j_slack_users['members']
-
-slack_members = getSlackUsers()
-
-def taskPending( taskDueDate ):
-	#1 day = 86,400,000 ms
-	if taskDueDate - current_milli_time() < 172800000:
-		return True
-	else:
-		return False
+	for member in j_slack_users['members']:
+		slack_members.append( member )
 
 def getAsanaUser( taskStructDict ):
 
 	user_id = taskStructDict[ 'assignee' ][ 'id' ]
-	user_url = 'https://app.asana.com/api/1.0/users/%s'%user_id
-	user = curl( user_url, authToken = asana_auth_token )
+	user_url = 'https://app.asana.com/api/1.0/users/{0}'.format(user_id)
+	user = curl( user_url, authToken = asana_auth_token[0] )
 	j_user = json.loads( user )
 
 	return j_user[ 'data' ][ 'name' ], j_user[ 'data' ][ 'email' ]
@@ -63,7 +56,7 @@ def remindUser( channel, taskStructDict, status ):
 
 	story_url = 'https://app.asana.com/api/1.0/tasks/%s/stories'%task_id
 	data = urllib.urlencode( { 'text': 'Please provide an update regarding this task and update the due date accordingly!' } )
-	task_story = curl( story_url, data, asana_auth_token )
+	task_story = curl( story_url, data, asana_auth_token[0] )
 	j_task_story = json.loads( task_story )[ 'data' ]
 	print 'POST Successful: %s.'%j_task_story[ 'text' ]
 
@@ -73,7 +66,6 @@ def sendSlackReminder( userName, userEmail, taskName, channel):
 	'''
 	Remind the user via Slack mention
 	'''
-	slack_webhook_url = 'https://hooks.slack.com/services/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'
 
 	for cur_user in slack_members:
 		'''
@@ -87,7 +79,7 @@ def sendSlackReminder( userName, userEmail, taskName, channel):
 			slack_reminder_msg = '"Hey <@%s|%s>, this Asana task is pending: %s"'%( cur_user_id, cur_user_name, taskName )
 			
 			try:
-				slack_res = curl( slack_webhook_url, '{"channel": "#' + channel + '", "username": "ReminderBot", "text":' + slack_reminder_msg + ', "icon_emoji": ":mega:"}')
+				slack_res = curl( slack_webhook_url[0], '{"channel": "#' + channel + '", "username": "ReminderBot", "text":' + slack_reminder_msg + ', "icon_emoji": ":mega:"}')
 				print 'Successfully sent reminder to %s.'%userName
 			except:
 				print 'Failed to send reminder to %s.'%userName
@@ -96,8 +88,8 @@ def sendSMSReminder(userPhonNumber, taskName):
 	#TODO
 	pass
 
-def getAsanaTasks( authToken, channel, projectUrl ):
-	all_tasks = curl( projectUrl, authToken = authToken )
+def getAsanaTasks( channel, projectUrl ):
+	all_tasks = curl( projectUrl, authToken = asana_auth_token[0] )
 	j_all_tasks = json.loads( all_tasks )
 	
 	for cur_task in j_all_tasks[ 'data' ]:
@@ -126,15 +118,20 @@ def getAsanaTasks( authToken, channel, projectUrl ):
 			if taskPending( cur_task_millis_due ):
 				remindUser( channel, cur_task, status = 'pending' )
 
-def updateAsana(projKey, slackChan):
+def updateAsana(projKey, slackChan, slackAuthToken, slackWebhook, asanaAuthToken):
 	info('function: updateAsana')
 	proj_key = projKey
 	channel = slackChan
 
 	projects = {'debug': '54999242167362', 'deliverables': '24426061282606'}
 	project_url = 'https://app.asana.com/api/1.0/projects/%s/tasks?opt_fields=due_on,assignee,name,completed'%projects[ proj_key ]
-
-	getAsanaTasks( asana_auth_token, channel, project_url )
+	
+	slack_auth_token.append( slackAuthToken )
+	slack_webhook_url.append( slackWebhook )
+	asana_auth_token.append( getAuthToken( asanaAuthToken ) )
+	
+	getSlackUsers()
+	getAsanaTasks( channel, project_url )
 
 if __name__ == '__main__':
 	parser = OptionParser()

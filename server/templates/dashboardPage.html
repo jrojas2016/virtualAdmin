@@ -1,19 +1,41 @@
 <!DOCTYPE html>
-<html lang = 'en'>
+<html lang='en'>
 <head>
-	<link rel = 'stylesheet' type = 'text/css' href = "{{ url_for('static',filename='styles/home.css') }}">
+	<link rel='stylesheet' type='text/css' href="{{ url_for('static',filename='styles/dashboard.css') }}">
 </head>
 <body>
-	<h1>Virtual Admin Dashboard: {{ usr }}</h1>
-	<form style = 'display: inline' action = '/' method = 'get'>
-		<button class = 'btn'>Log Out</button>
-	</form>
-	<h2>Actions</h2>
-		<form style = 'display: inline' action = '/dashboard/{{ usr }}/updateAsana' method = 'get'>
-			<button class = 'btn'>Remind Users</button>
+	<div class="top_div">	
+		<form style='display: inline' action='/' method='get'>
+			<button class='btn'>Log Out</button>
 		</form>
-		<form style = 'display: inline' action = '/dashboard/{{ usr }}/createAgenda' method = 'get'>
-			<button class = 'btn'>Create Agenda</button>
+	</div>
+
+	<div class="title_div">	
+		<h1>VIRTUAL ADMIN DASHBOARD</h1>
+		<h2>{{ usr }}</h2>
+	</div>
+
+	<div class="settings_div">
+		<form style='display: inline' action='/admin-settings/{{ usr }}' method='get'>
+				<button class='btn'>ADMIN SETTINGS</button>
 		</form>
+	</div>
+
+	<div class="settings_div">
+		<form style='display: inline' action='/api-settings/{{ usr }}' method='get'>
+			<button class='btn'>INTEGRATION SETTINGS</button>
+		</form>
+	</div>
+
+	<div class="qa_div">	
+		<h3>QUICK ACTIONS</h3>
+			<form style='display: inline' action='/dashboard/{{ usr }}/updateAsana' method='get'>
+				<button class='btn'>Remind Users</button>
+			</form>
+
+			<form style='display: inline' action='/dashboard/{{ usr }}/createAgenda' method='get'>
+				<button class='btn'>Create Agenda</button>
+			</form>
+	</div>
 </body>
 </html>

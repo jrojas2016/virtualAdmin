@@ -11,19 +11,19 @@ author(s):
 '''Utility Imports'''
 import sys
 import time
-import json, base64
+import json
 from datetime import datetime
-from utilities import curl, info
 from optparse import OptionParser
+from utilities import curl, info, today, getAuthToken
 
 '''gDrive Imports'''
 from docx import Document
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 
-today = lambda: datetime.fromtimestamp( time.time() )
+
 #Change '***************:' auth token from Asana once the members are registered
-auth_token = base64.encodestring( '3IOlvKIK.qCLaoBd9o9vQzENWfspMQUl:' ).replace( '\n', '' )
+auth_token = []
 
 heading = 'La Unidad Latina, Lambda Upsilon Lambda Fraternity, Inc.'
 createDate = 'Alpha Alpha Chapter Agenda {0.year}-{0.month}-{0.day}'.format( today() )
@@ -35,20 +35,20 @@ def getUser( taskStructDict ):
 	user_name = taskStructDict[ 'assignee' ][ 'name' ]
 
 	user_url = 'https://app.asana.com/api/1.0/users/{0}?opt_pretty'.format(user_id)
-	user = curl( user_url, authToken = auth_token )
+	user = curl( user_url, authToken = auth_token[0] )
 	j_user = json.loads( user )
 
 	return j_user[ 'data' ][ 'name' ], j_user[ 'data' ][ 'email' ]
 
-def postLinkToSlack( gFileLink, chan = 'debug' ):
-	slack_webhook_url = 'https://hooks.slack.com/services/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'
+def postLinkToSlack( gFileLink, chan = 'debug', slackWebhook = None ):
+	# slack_webhook_url = 'https://hooks.slack.com/services/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'
 	slack_msg = 'Hey <!everyone>, <{0}|click this link> to see this week\'s agenda!'.format(gFileLink)
 	slack_payload = '{"text": "%s","channel": "#%s","username": "ReminderBot","icon_emoji": ":mega:"}'%(slack_msg, chan)
 	# print slack_payload
-	slack_res = curl( slack_webhook_url, slack_payload )
+	slack_res = curl( slackWebhook, slack_payload )
 	print "Agenda's link was succesfully posted on Slack."
 
-def uploadToDrive( gAuthCode, fileName, gFolderID, slackChan):
+def uploadToDrive( gAuthCode, fileName, gFolderID, slackChan, slackWebhook):
 	'''Google Drive Authentication'''
 	gauth = GoogleAuth()
 	if gAuthCode == None:
@@ -77,7 +77,7 @@ def uploadToDrive( gAuthCode, fileName, gFolderID, slackChan):
 		if cur_file['title'] == fileName[8:]:
 			g_alternate_link = cur_file['alternateLink']
 
-	postLinkToSlack( g_alternate_link, slackChan )
+	postLinkToSlack( g_alternate_link, slackChan, slackWebhook )
 
 def writeAgenda( authToken, projectUrl, document, fileName ):
 	'''Capture all tasks (discussion topics)'''
@@ -147,7 +147,7 @@ def writeAgenda( authToken, projectUrl, document, fileName ):
 
 	document.save( fileName )
 
-def createAgenda(projKey, slackChan = None, gAuthCode = None):
+def createAgenda(projKey, slackChan = None, gAuthCode = None, asanaAuthCode = None, slackWebhook = None):
 	#Needs updating if path changes
 	# gdrive_path = '00 Internal/03 Agendas & Minutes/2015 - 2016'.split('/')	
 	info('function: createAgenda')
@@ -169,8 +169,9 @@ def createAgenda(projKey, slackChan = None, gAuthCode = None):
 	agenda_doc = Document()
 	agenda_doc.add_heading( heading, 0 )
 	agenda_doc.add_paragraph( createDate ).bold = True
-	writeAgenda( auth_token, project_url, agenda_doc, fi_name )
-	uploadToDrive( gAuthCode, fi_name, gFolders[projKey], slackChan )
+	auth_token.append( getAuthToken(asanaAuthCode) )
+	writeAgenda( auth_token[0], project_url, agenda_doc, fi_name )
+	uploadToDrive( gAuthCode, fi_name, gFolders[projKey], slackChan, slackWebhook )
 
 if __name__ == '__main__':
 	parser = OptionParser()
@@ -189,9 +190,6 @@ if __name__ == '__main__':
 	proj_key = options.projKey	#Proj Key from terminal
 	chan = options.chan
 	# print proj_key
-	createAgenda(proj_key, slackChan = chan, gAuthCode = None)
+	createAgenda(proj_key, slackChan = chan, gAuthCode = None, asanaAuthCode = None, slackWebhook = None)
 
-'''
-TODO:
-- Change Folder to save agendas from UI with shareable link
-'''
+

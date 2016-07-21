@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang='en'>
+	<head>
+<!-- 		<link rel='stylesheet' type='text/css' href="{{ url_for('static',filename='styles/dashboard.css') }}"> -->
+	</head>
+
+	<body>
+
+		<dl>
+		{% for member, attributes in members.iteritems() %}
+			<h1>{{ member }} details</h1>
+			<form style='display: inline' action='/members/{{ usr }}/{{ member }}' method='post'>
+				{% if member == 'Add-member' %}
+					<span style="font-weight:bold">Name:</span><br>
+					<input type="text" name="member_name" size="40" ><br><br>
+				{% endif %}
+
+				{% for attrKey, attrVal in attributes.iteritems() %}
+					<span style="font-weight:bold">{{ attrKey }}:</span><br>
+					<input type="text" name="{{ attrKey }}" size="80" value="{{ attrVal }}"><br><br>
+				{% endfor %}
+				<input type="submit" value="save"><br>
+			</form>
+		{% endfor %}
+		</dl>
+
+		<form style="display: inline" action="/setGoogleFolder/{{ usr }}">
+			<span style="font-weight:bold">gDrive Folder Shareable Link:</span><br>
+			<input type="text" name="gfolder_link" size="80" value="{{ usrLink }}"><br><br>
+			<input type="submit" value="save"><br><br>
+		</form>
+
+		<form style="display: inline" action="/setMeetingDate/{{ usr }}">
+			<span style="font-weight:bold">Weekly Agenda Creation Date (e.g. monday, tuesday, ...):</span><br>
+			<input type="text" name="w_agenda_date" size="80" value="{{ usrDate }}"><br><br>
+			<input type="submit" value="save"><br><br>
+		</form>
+
+		<form style='display: inline' action='/dashboard/{{ usr }}' method='get'>
+			<input type='submit' value='dashboard'>
+		</form>
+
+	</body>
+</html>
