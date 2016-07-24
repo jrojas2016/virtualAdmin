@@ -9,14 +9,21 @@ author(s):
 
 import os
 import time
+import uuid
 import base64
 import urllib2
+import hashlib
 import smtplib
 from datetime import datetime
 
-today = lambda: datetime.fromtimestamp( time.time() )
+dateNow = lambda: datetime.utcnow()
+timeNow = lambda: datetime.fromtimestamp( time.time() )
 currentMilliTime = lambda: int( round( time.time() * 1000 ) )
-getAuthToken = lambda token: base64.encodestring( token ).replace( '\n', '' )
+
+generateAppKey = lambda: str(uuid.uuid4())
+hashPassword = lambda psswrd: hashlib.sha512( psswrd ).hexdigest()
+encodeAuthToken = lambda token: base64.encodestring( token ).replace( '\n', '' )
+
 
 def curl( url, data = None, authToken = None ):
 
@@ -32,6 +39,14 @@ def curl( url, data = None, authToken = None ):
 	res = response.read()
 	return res
 
+def getDeltaTimeMilli( dueDate ):
+	epoch = datetime.utcfromtimestamp( 0 )
+	dueTime = datetime.strptime( dueDate, '%Y-%m-%d' )
+	delta_t = dueTime - epoch
+	delta_time_milli = delta_t.total_seconds() * 1000.0
+
+	return delta_time_milli
+
 def info(title):
     print title
     if hasattr(os, 'getppid'):  # only available on Unix
@@ -41,7 +56,7 @@ def info(title):
 def sendEmailConfirmation(email, usrName, hostUrl):
 	#Implement email confirmation after sign-up
 	sender = 'va.test2016@gmail.com'
-	passwrd = 'VAsorullit0'
+	passwrd = 'xxxxxxxx'
 	server = smtplib.SMTP("smtp.gmail.com",587)
 	server.starttls()
 	server.login(sender, passwrd)

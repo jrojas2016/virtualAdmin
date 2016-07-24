@@ -7,33 +7,44 @@
 	<body>
 
 		<dl>
-		{% for member, attributes in members.iteritems() %}
-			<h1>{{ member }} details</h1>
-			<form style='display: inline' action='/members/{{ usr }}/{{ member }}' method='post'>
-				{% if member == 'Add-member' %}
-					<span style="font-weight:bold">Name:</span><br>
-					<input type="text" name="member_name" size="40" ><br><br>
+			{% for member, attributes in members.iteritems() %}
+				{% if member != 'Add-member' %}
+					<h1>{{ member }} details</h1>
+				{% else %}
+					<h1>Add Member</h1>
 				{% endif %}
+				<form style='display: inline' action='/members/{{ usr }}/{{ member }}' method='post'>
+					{% if member == 'Add-member' %}
+						<span style="font-weight:bold">Name:</span><br>
+						<input type="text" name="member_name" size="40" ><br><br>
+					{% endif %}
 
-				{% for attrKey, attrVal in attributes.iteritems() %}
-					<span style="font-weight:bold">{{ attrKey }}:</span><br>
-					<input type="text" name="{{ attrKey }}" size="80" value="{{ attrVal }}"><br><br>
-				{% endfor %}
-				<input type="submit" value="save"><br>
+					{% for attrKey, attrVal in attributes.iteritems() %}
+						<span style="font-weight:bold">{{ attrKey }}:</span><br>
+						<input type="text" name="{{ attrKey }}" size="80" value="{{ attrVal }}"><br><br>
+					{% endfor %}
+					<input type="submit" value="update"><br>
+				</form>
+			{% endfor %}
+
+			<h1>Remove Member</h1>
+			<form style='display: inline' action='/members/{{ usr }}/remove' method='post'>
+				<span style="font-weight:bold">Name:</span><br>
+				<input type="text" name="member_name" size="40" ><br><br>
+				<input type="submit" value="update"><br>
 			</form>
-		{% endfor %}
 		</dl>
 
-		<form style="display: inline" action="/setGoogleFolder/{{ usr }}">
-			<span style="font-weight:bold">gDrive Folder Shareable Link:</span><br>
+		<h1>gDrive Folder Shareable Link:</h1>
+		<form style="display: inline" action="/setGoogleFolder/{{ usr }}" method="post">
 			<input type="text" name="gfolder_link" size="80" value="{{ usrLink }}"><br><br>
-			<input type="submit" value="save"><br><br>
+			<input type="submit" value="update"><br><br>
 		</form>
 
-		<form style="display: inline" action="/setMeetingDate/{{ usr }}">
-			<span style="font-weight:bold">Weekly Agenda Creation Date (e.g. monday, tuesday, ...):</span><br>
+		<h1>Weekly Agenda Creation Date (e.g. monday, tuesday, ...):</h1><br>
+		<form style="display: inline" action="/setMeetingDate/{{ usr }}" method="post">
 			<input type="text" name="w_agenda_date" size="80" value="{{ usrDate }}"><br><br>
-			<input type="submit" value="save"><br><br>
+			<input type="submit" value="update"><br><br>
 		</form>
 
 		<form style='display: inline' action='/dashboard/{{ usr }}' method='get'>
